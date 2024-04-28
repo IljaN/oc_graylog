@@ -17,10 +17,8 @@ func processLine(line string, conn net.Conn) error {
 	err := json.Unmarshal([]byte(line), &data)
 	if err != nil {
 		return fmt.Errorf("error parsing JSON: %v", err)
-
 	}
 
-	// Get the value of the "time" field
 	timeStr, ok := data["time"].(string)
 	if !ok {
 		return fmt.Errorf("error: 'time' field not found or not a string")
@@ -31,7 +29,8 @@ func processLine(line string, conn net.Conn) error {
 		return fmt.Errorf("error parsing time: %v", err)
 	}
 
-	data["timestamp"] = t.Unix()
+	// Required fields by GELF
+	data["timestamp"] = float64(t.UnixNano()) / float64(time.Second)
 	data["version"] = "1.1"
 	data["host"] = "localhost"
 
@@ -41,7 +40,6 @@ func processLine(line string, conn net.Conn) error {
 		return fmt.Errorf("error marshalling JSON: %v", err)
 	}
 
-	// Send modified line to the server
 	_, err = conn.Write(modifiedLine)
 	if err != nil {
 		return fmt.Errorf("error sending data: %v", err)
