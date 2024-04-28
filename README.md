@@ -1,6 +1,5 @@
 # oc_graylog
 
----
 Tooling to ingest and analyze owncloud.log and audit.log on your local machine using graylog.
 
 ## Requirements
