@@ -11,11 +11,10 @@ import (
 	"time"
 )
 
-func processLine(line string, conn net.Conn) error {
-	// Parse the JSON string
+// convertToGELF converts a owncloud JSON log line to GELF format
+func convertToGELF(logLine *[]byte) error {
 	var data map[string]interface{}
-	err := json.Unmarshal([]byte(line), &data)
-	if err != nil {
+	if err := json.Unmarshal(*logLine, &data); err != nil {
 		return fmt.Errorf("error parsing JSON: %v", err)
 	}
 
@@ -35,14 +34,8 @@ func processLine(line string, conn net.Conn) error {
 	data["host"] = "localhost"
 
 	// Convert back to JSON
-	modifiedLine, err := json.Marshal(data)
-	if err != nil {
+	if *logLine, err = json.Marshal(data); err != nil {
 		return fmt.Errorf("error marshalling JSON: %v", err)
-	}
-
-	_, err = conn.Write(modifiedLine)
-	if err != nil {
-		return fmt.Errorf("error sending data: %v", err)
 	}
 
 	return nil
@@ -64,12 +57,18 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	startT := time.Now()
 	var msgCount uint64 = 0
+
 	for scanner.Scan() {
-		line := scanner.Text()
-		if err = processLine(line, conn); err != nil {
+		line := scanner.Bytes()
+		if err = convertToGELF(&line); err != nil {
 			log.Printf("Error processing line: %v", err)
 			continue
 		}
+
+		if _, err = conn.Write(line); err != nil {
+			log.Printf("error sending data: %v", err)
+		}
+
 		msgCount++
 	}
 
