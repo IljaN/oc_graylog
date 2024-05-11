@@ -56,8 +56,12 @@ func convertToGELF(logLine *[]byte) error {
 func main() {
 
 	var gelfUDPAddr string
-	flag.StringVar(&gelfUDPAddr, "a", "127.0.0.1:12201", "GELF UDP address")
-	flag.Parse()
+
+	gelfUDPAddr = os.Getenv("OC_INGEST_GELF_UDP_ADDR")
+	if gelfUDPAddr == "" {
+		flag.StringVar(&gelfUDPAddr, "a", "127.0.0.1:12201", "GELF UDP address")
+		flag.Parse()
+	}
 
 	// Connect to server
 	conn, err := net.Dial("udp", gelfUDPAddr)
