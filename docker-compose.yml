@@ -1,4 +1,16 @@
 services:
+  oc_ingest:
+    container_name: oc_ingest
+    build:
+      dockerfile: Dockerfile
+      context: ./ingest_tools/owncloud
+    environment:
+      - OC_INGEST_GELF_UDP_ADDR=graylog:12201
+    networks:
+      - graylog
+    depends_on:
+      - graylog
+
   mongodb:
     image: mongo:6.0.14
     networks:
