@@ -70,9 +70,13 @@ func main() {
 	}
 	defer conn.Close()
 
+	log.Println("Connected to server: ", gelfUDPAddr)
+
 	scanner := bufio.NewScanner(os.Stdin)
 	startT := time.Now()
 	var msgCount uint64 = 0
+
+	log.Println("Ingesting log(s)...")
 
 	for scanner.Scan() {
 		line := scanner.Bytes()
