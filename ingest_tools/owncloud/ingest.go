@@ -93,5 +93,5 @@ func main() {
 	}
 
 	elapsed := time.Since(startT)
-	fmt.Printf("Processed %d messages in %f secs\n", msgCount, elapsed.Seconds())
+	log.Printf("Processed %d messages in %f secs\n", msgCount, elapsed.Seconds())
 }
