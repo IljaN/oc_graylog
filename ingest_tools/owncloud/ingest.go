@@ -11,6 +11,18 @@ import (
 	"time"
 )
 
+// toGELFTime converts owncloud log-timestamp to GELF time format
+func toGELFTime(ocTime string) (float64, error) {
+	var t time.Time
+	var err error
+
+	if t, err = time.Parse("2006-01-02 15:04:05.999999", ocTime); err != nil {
+		return 0, fmt.Errorf("error parsing oc time: %v", err)
+	}
+
+	return float64(t.UnixNano()) / float64(time.Second), err
+}
+
 // convertToGELF converts a owncloud JSON log line to GELF format
 func convertToGELF(logLine *[]byte) error {
 	var data map[string]interface{}
@@ -18,18 +30,18 @@ func convertToGELF(logLine *[]byte) error {
 		return fmt.Errorf("error parsing JSON: %v", err)
 	}
 
-	timeStr, ok := data["time"].(string)
+	ocTimestamp, ok := data["time"].(string)
 	if !ok {
 		return fmt.Errorf("error: 'time' field not found or not a string")
 	}
 
-	t, err := time.Parse("2006-01-02 15:04:05.999999", timeStr)
+	gelfTime, err := toGELFTime(ocTimestamp)
 	if err != nil {
-		return fmt.Errorf("error parsing time: %v", err)
+		return fmt.Errorf("error converting time to GELF format: %v", err)
 	}
 
 	// Required fields by GELF
-	data["timestamp"] = float64(t.UnixNano()) / float64(time.Second)
+	data["timestamp"] = gelfTime
 	data["version"] = "1.1"
 	data["host"] = "localhost"
 
